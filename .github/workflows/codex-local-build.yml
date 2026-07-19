@@ -1,0 +1,36 @@
+name: Codex local VoiceInk build
+
+on:
+  push:
+    branches:
+      - codex/free-local-build-v2
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out VoiceInk 2.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Verify build prerequisites
+        run: make check
+
+      - name: Build free local app
+        run: make local
+
+      - name: Package app bundle
+        run: ditto -c -k --sequesterRsrc --keepParent "$HOME/Downloads/VoiceInk.app" VoiceInk-local-v2.zip
+
+      - name: Upload app bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: VoiceInk-local-v2
+          path: VoiceInk-local-v2.zip
+          if-no-files-found: error
+          retention-days: 1
