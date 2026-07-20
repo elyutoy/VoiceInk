@@ -27,6 +27,13 @@ jobs:
       - name: Verify build prerequisites
         run: make check
 
+      - name: Verify updater policy
+        run: |
+          swiftc -DLOCAL_BUILD VoiceInk/BuildUpdatePolicy.swift scripts/tests/LocalBuildUpdatePolicyTest.swift -o "$RUNNER_TEMP/voiceink-local-update-policy-test"
+          "$RUNNER_TEMP/voiceink-local-update-policy-test"
+          swiftc VoiceInk/BuildUpdatePolicy.swift scripts/tests/LocalBuildUpdatePolicyTest.swift -o "$RUNNER_TEMP/voiceink-release-update-policy-test"
+          "$RUNNER_TEMP/voiceink-release-update-policy-test"
+
       - name: Build free local app
         run: make local
 

@@ -455,13 +455,18 @@ private struct MainWindowRequestBridge: View {
 
 class UpdaterViewModel: ObservableObject {
     private let updaterController: SPUStandardUpdaterController
+    private let allowsApplicationUpdates: Bool
 
     @Published var canCheckForUpdates = false
     @Published var automaticallyChecksForUpdates = false
 
     init() {
+        let allowsApplicationUpdates = BuildUpdatePolicy.allowsApplicationUpdates
+        self.allowsApplicationUpdates = allowsApplicationUpdates
         updaterController = SPUStandardUpdaterController(
-            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            startingUpdater: allowsApplicationUpdates, updaterDelegate: nil, userDriverDelegate: nil)
+
+        guard allowsApplicationUpdates else { return }
 
         automaticallyChecksForUpdates = updaterController.updater.automaticallyChecksForUpdates
 
@@ -473,10 +478,12 @@ class UpdaterViewModel: ObservableObject {
     }
 
     func setAutomaticallyChecksForUpdates(_ value: Bool) {
+        guard allowsApplicationUpdates else { return }
         updaterController.updater.automaticallyChecksForUpdates = value
     }
 
     func checkForUpdates() {
+        guard allowsApplicationUpdates else { return }
         // This is for manual checks - will show UI
         updaterController.checkForUpdates(nil)
     }
