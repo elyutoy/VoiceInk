@@ -63,6 +63,20 @@ class CursorPaster {
 
         await wait(prePasteDelay)
 
+        // Selected-text/context capture and clipboard managers may rewrite the
+        // pasteboard while a recording is finishing. Reassert this session's
+        // text immediately before posting Cmd+V so stale content cannot win.
+        guard
+            ClipboardManager.setClipboard(
+                text,
+                transient: shouldRestoreClipboard,
+                sessionID: shouldRestoreClipboard ? sessionID : nil
+            )
+        else {
+            logger.error("Failed to revalidate clipboard immediately before paste")
+            return .commandNotPosted
+        }
+
         let pasteResult = await postPasteCommand()
         if shouldRestoreClipboard {
             scheduleClipboardRestore(
