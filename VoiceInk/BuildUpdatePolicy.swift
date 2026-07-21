@@ -5,3 +5,13 @@ enum BuildUpdatePolicy {
         static let allowsApplicationUpdates = true
     #endif
 }
+
+enum BuildPastePolicy {
+    #if LOCAL_BUILD
+        static let forcedMethodRawValue: String? = "default"
+        static let restoresClipboardAfterPaste = false
+    #else
+        static let forcedMethodRawValue: String? = nil
+        static let restoresClipboardAfterPaste = true
+    #endif
+}

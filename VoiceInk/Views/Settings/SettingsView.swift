@@ -169,7 +169,7 @@ struct SettingsView: View {
                 }
 
                 Picker(selection: $pasteMethodRawValue) {
-                    ForEach(PasteMethod.allCases) { method in
+                    ForEach(PasteMethod.selectableCases) { method in
                         Text(method.displayName).tag(method.rawValue)
                     }
                 } label: {
@@ -187,6 +187,7 @@ struct SettingsView: View {
                         return
                     }
                     PasteMethod.setCurrent(method)
+                    pasteMethodRawValue = PasteMethod.current().rawValue
                 }
             }
 
