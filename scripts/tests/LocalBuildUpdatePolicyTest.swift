@@ -14,6 +14,10 @@ struct LocalBuildUpdatePolicyTest {
                 !BuildPastePolicy.restoresClipboardAfterPaste,
                 "LOCAL_BUILD must not restore stale clipboard content after paste"
             )
+            precondition(
+                !BuildPastePolicy.capturesSelectedTextContext,
+                "LOCAL_BUILD must not let selected-text capture race with paste delivery"
+            )
         #else
             precondition(
                 BuildUpdatePolicy.allowsApplicationUpdates,
@@ -26,6 +30,10 @@ struct LocalBuildUpdatePolicyTest {
             precondition(
                 BuildPastePolicy.restoresClipboardAfterPaste,
                 "Official builds must retain the existing clipboard behavior"
+            )
+            precondition(
+                BuildPastePolicy.capturesSelectedTextContext,
+                "Official builds must retain the existing selected-text context behavior"
             )
         #endif
     }
