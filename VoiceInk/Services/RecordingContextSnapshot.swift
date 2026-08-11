@@ -34,15 +34,9 @@ final class RecordingContextSnapshotStore {
 @MainActor
 enum RecordingContextCaptureService {
     static func startCapture(into store: RecordingContextSnapshotStore) -> [Task<Void, Never>] {
-        [
+        var tasks: [Task<Void, Never>] = [
             Task { @MainActor in
                 store.updateClipboardText(NSPasteboard.general.string(forType: .string))
-            },
-            Task { @MainActor in
-                guard !Task.isCancelled else { return }
-                let selectedText = await SelectedTextService.fetchSelectedText()
-                guard !Task.isCancelled else { return }
-                store.updateSelectedText(selectedText)
             },
             Task { @MainActor in
                 guard CGPreflightScreenCaptureAccess(), !Task.isCancelled else { return }
@@ -52,5 +46,18 @@ enum RecordingContextCaptureService {
                 store.updateScreenText(screenText)
             },
         ]
+
+        if BuildPastePolicy.capturesSelectedTextContext {
+            tasks.append(
+                Task { @MainActor in
+                    guard !Task.isCancelled else { return }
+                    let selectedText = await SelectedTextService.fetchSelectedText()
+                    guard !Task.isCancelled else { return }
+                    store.updateSelectedText(selectedText)
+                }
+            )
+        }
+
+        return tasks
     }
 }

@@ -21,7 +21,7 @@ enum AppDefaults {
             "enableAnnouncements": true,
 
             // Clipboard
-            "restoreClipboardAfterPaste": true,
+            "restoreClipboardAfterPaste": BuildPastePolicy.restoresClipboardAfterPaste,
             "clipboardRestoreDelay": 2.0,
             "useAppleScriptPaste": false,
 
@@ -66,6 +66,10 @@ enum AppDefaults {
             "PrewarmModelOnWake": true,
 
         ])
+
+        if !BuildPastePolicy.restoresClipboardAfterPaste {
+            UserDefaults.standard.set(false, forKey: "restoreClipboardAfterPaste")
+        }
 
         PasteMethod.migrateLegacyUserDefaultIfNeeded()
     }
