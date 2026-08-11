@@ -63,6 +63,8 @@ local: check setup
 		echo "Copying VoiceInk.app to ~/Downloads..."; \
 		rm -rf "$$HOME/Downloads/VoiceInk.app"; \
 		ditto "$$APP_PATH" "$$HOME/Downloads/VoiceInk.app"; \
+		/usr/libexec/PlistBuddy -c "Add :VoiceInkLocalBuild bool true" "$$HOME/Downloads/VoiceInk.app/Contents/Info.plist"; \
+		codesign --force --deep --sign - "$$HOME/Downloads/VoiceInk.app"; \
 		xattr -cr "$$HOME/Downloads/VoiceInk.app"; \
 		echo ""; \
 		echo "Build complete! App saved to: ~/Downloads/VoiceInk.app"; \

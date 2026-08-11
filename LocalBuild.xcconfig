@@ -17,4 +17,3 @@ SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) LOCAL_BUILD
 // Identify this artifact as the local build of the official v2.1 tag.
 MARKETING_VERSION = 2.1
 CURRENT_PROJECT_VERSION = 205
-INFOPLIST_KEY_VoiceInkLocalBuild = YES
