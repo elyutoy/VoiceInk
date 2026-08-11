@@ -39,7 +39,7 @@ jobs:
 
       - name: Run VoiceInk unit tests in LOCAL_BUILD mode
         run: |
-          xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Release \
+          xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Debug \
             -derivedDataPath "$RUNNER_TEMP/voiceink-tests" \
             -destination 'platform=macOS' \
             -xcconfig LocalBuild.xcconfig \
