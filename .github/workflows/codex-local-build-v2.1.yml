@@ -1,0 +1,74 @@
+name: Codex local VoiceInk v2.1 build
+
+on:
+  push:
+    branches:
+      - codex/free-local-build-v2.1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out local v2.1 branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Select Xcode with Swift 6.2
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
+          xcodebuild -version
+          swift --version
+
+      - name: Verify build prerequisites
+        run: make check
+
+      - name: Verify local-build policy and paste selection
+        run: |
+          swiftc -DLOCAL_BUILD VoiceInk/BuildUpdatePolicy.swift VoiceInk/Paste/PasteMethod.swift scripts/tests/LocalBuildPolicyTest.swift -o "$RUNNER_TEMP/voiceink-local-policy-test"
+          "$RUNNER_TEMP/voiceink-local-policy-test"
+          swiftc VoiceInk/BuildUpdatePolicy.swift VoiceInk/Paste/PasteMethod.swift scripts/tests/LocalBuildPolicyTest.swift -o "$RUNNER_TEMP/voiceink-release-policy-test"
+          "$RUNNER_TEMP/voiceink-release-policy-test"
+
+      - name: Prepare native dependency
+        run: make setup
+
+      - name: Run VoiceInk unit tests in LOCAL_BUILD mode
+        run: |
+          xcodebuild -project VoiceInk.xcodeproj -scheme VoiceInk -configuration Release \
+            -derivedDataPath "$RUNNER_TEMP/voiceink-tests" \
+            -destination 'platform=macOS' \
+            -xcconfig LocalBuild.xcconfig \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) LOCAL_BUILD' \
+            -only-testing:VoiceInkTests \
+            test
+
+      - name: Build free local app
+        run: make local
+
+      - name: Verify local app bundle
+        run: |
+          APP="$HOME/Downloads/VoiceInk.app"
+          test -d "$APP"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")" = "2.1"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Contents/Info.plist")" = "205"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :VoiceInkLocalBuild' "$APP/Contents/Info.plist")" = "true"
+          codesign --verify --deep --strict "$APP"
+
+      - name: Package app bundle
+        run: ditto -c -k --sequesterRsrc --keepParent "$HOME/Downloads/VoiceInk.app" VoiceInk-local-v2.1.zip
+
+      - name: Upload app bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: VoiceInk-local-v2.1
+          path: VoiceInk-local-v2.1.zip
+          if-no-files-found: error
+          retention-days: 1
