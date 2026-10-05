@@ -40,9 +40,14 @@ enum RecordingContextCaptureService {
             },
             Task { @MainActor in
                 guard !Task.isCancelled else { return }
+                #if LOCAL_BUILD
+                    store.updateSelectedText(nil)
+                    return
+                #else
                 let selectedText = await SelectedTextService.fetchSelectedText()
                 guard !Task.isCancelled else { return }
                 store.updateSelectedText(selectedText)
+                #endif
             },
             Task { @MainActor in
                 guard CGPreflightScreenCaptureAccess(), !Task.isCancelled else { return }

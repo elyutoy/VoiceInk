@@ -35,6 +35,14 @@ final class UpdaterViewModel: NSObject, ObservableObject, SPUUpdaterDelegate {
         checksForUpdatesWhenDashboardAppears = Self.initialAutomaticCheckPreference(in: defaults)
         super.init()
 
+        #if LOCAL_BUILD
+            checksForUpdatesWhenDashboardAppears = false
+            defaults.set(false, forKey: DefaultsKey.automaticUpdateChecks)
+            defaults.set(false, forKey: DefaultsKey.sparkleAutomaticChecks)
+            defaults.set(false, forKey: "SUAutomaticallyUpdate")
+            return
+        #endif
+
         let updater = updaterController.updater
 
         // VoiceInk owns automatic discovery through Sparkle's non-presenting probe.
@@ -49,6 +57,9 @@ final class UpdaterViewModel: NSObject, ObservableObject, SPUUpdaterDelegate {
     }
 
     func setChecksForUpdatesWhenDashboardAppears(_ value: Bool) {
+        #if LOCAL_BUILD
+            return
+        #endif
         guard checksForUpdatesWhenDashboardAppears != value else { return }
 
         checksForUpdatesWhenDashboardAppears = value
@@ -121,6 +132,9 @@ final class UpdaterViewModel: NSObject, ObservableObject, SPUUpdaterDelegate {
     }
 
     private func checkForUpdateInformationIfPossible() {
+        #if LOCAL_BUILD
+            return
+        #endif
         let updater = updaterController.updater
         guard !updater.sessionInProgress else { return }
         updater.checkForUpdateInformation()

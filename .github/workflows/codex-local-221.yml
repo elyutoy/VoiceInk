@@ -1,0 +1,33 @@
+name: VoiceInk 2.21 local protected build
+on:
+  push:
+    branches: [codex/local-v2.21-protected]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
+      - name: Build local app
+        run: make local LOCAL_CODESIGN_IDENTITY=-
+      - name: Mark and verify app
+        run: |
+          APP="$HOME/Downloads/VoiceInk.app"
+          /usr/libexec/PlistBuddy -c 'Set :CFBundleShortVersionString 2.21' "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Set :CFBundleVersion 221' "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Add :VoiceInkLocalBuild bool true' "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :VoiceInkSourceCommit string $GITHUB_SHA" "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Set :SUEnableAutomaticChecks false' "$APP/Contents/Info.plist"
+          codesign --force --sign - "$APP"
+          codesign --verify --deep --strict "$APP"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" VoiceInk-local-2.21.zip
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: VoiceInk-local-2.21
+          path: VoiceInk-local-2.21.zip
+          retention-days: 7
